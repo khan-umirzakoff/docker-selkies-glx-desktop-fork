@@ -1,9 +1,28 @@
 services:
+  backend:
+    container_name: backend-orchestrator
+    build: ./backend
+    ports:
+      - "5000:5000"
+    volumes:
+      # Mount the docker socket to allow the backend to manage containers
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Mount a volume for persistent user data
+      - user-data:/app/user-data
+    environment:
+      # Pass the path inside the container where user data is stored
+      - USER_DATA_PATH=/app/user-data
+      # For development, Flask will auto-reload
+      - FLASK_ENV=development
+    depends_on:
+      - xgl
+
   xgl:
     container_name: xgl
     hostname: xgl
-    # Change tag `latest` to Ubuntu versions such as `24.04`, use a persistent tag such as `24.04-20210101010101` to persist a certain container version
-    image: ghcr.io/selkies-project/nvidia-glx-desktop:latest
+    # This image is built from the Dockerfile in this repository.
+    image: menda-cloud-gaming:latest
+    build: .
     ports:
     - '8080:8080'
     # Internal TURN server settings
@@ -22,9 +41,13 @@ services:
             capabilities: [gpu]
     tmpfs:
     - '/dev/shm:rw'
-#    volumes:
-#    - 'xgl-cache-vol:/cache'
-#    - 'xgl-root-vol:/home/ubuntu'
+    volumes:
+      # Mount a shared volume for games.
+      - games:/home/steam/games
+      # The backend/orchestrator is responsible for mounting a unique host directory
+      # for each user to this path. This isolates Steam user data.
+      # Example for a single user:
+      # - ./user-data/userA:/home/ubuntu/.steam
     # Uncomment the below line to disable network isolation for WebRTC connectivity, display `:20` and `:21` should not be used in the host, may show an error if disallowed by the cluster
 #    network_mode: 'host'
     environment:
@@ -84,3 +107,10 @@ services:
 #    - SELKIES_TURN_PASSWORD=mypasswd
     # TURN REST URI authentication, all TURN server settings above are ignored if enabled
 #    - 'SELKIES_TURN_REST_URI=http://localhost:8008'
+
+volumes:
+  games:
+    # You can specify a driver or leave it as default (local).
+    # For multi-node setups, a shared storage driver like NFS would be needed here.
+  user-data:
+    # This volume will persist the user data created by the backend service

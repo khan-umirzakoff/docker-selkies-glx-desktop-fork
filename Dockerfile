@@ -495,6 +495,18 @@ RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
     chmod -f 755 /usr/bin/winetricks && \
     curl -o /usr/share/bash-completion/completions/winetricks -fsSL "https://raw.githubusercontent.com/Winetricks/winetricks/master/src/winetricks.bash-completion"; fi
 
+# Install Sunshine and SteamCMD
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+    # Install Sunshine
+    SUNSHINE_VERSION="$(curl -fsSL "https://api.github.com/repos/LizardByte/Sunshine/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
+    cd /tmp && curl -o sunshine.deb -fsSL "https://github.com/LizardByte/Sunshine/releases/download/v${SUNSHINE_VERSION}/sunshine-ubuntu-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"')-amd64.deb" && \
+    apt-get update && apt-get install -y ./sunshine.deb && rm -f sunshine.deb && \
+    # Install SteamCMD
+    echo steam steam/license note '' | debconf-set-selections && \
+    echo steam steam/question select "I AGREE" | debconf-set-selections && \
+    apt-get update && apt-get install -y steamcmd && \
+    apt-get clean && rm -rf /var/lib/apt/lists/* /var/cache/debconf/* /var/log/* /tmp/* /var/tmp/*; fi
+
 # Install latest Selkies (https://github.com/selkies-project/selkies) build, Python application, and web application, should be consistent with Selkies documentation
 ARG PIP_BREAK_SYSTEM_PACKAGES=1
 RUN apt-get update && apt-get install --no-install-recommends -y \
@@ -565,6 +577,8 @@ ENV LD_LIBRARY_PATH="${LD_LIBRARY_PATH:+${LD_LIBRARY_PATH}:}/usr/lib/rustdesk/li
 # Add custom packages right below this comment, or use FROM in a new container and replace entrypoint.sh or supervisord.conf, and set ENTRYPOINT to /usr/bin/supervisord
 
 # Copy scripts and configurations used to start the container with `--chown=1000:1000`
+COPY --chown=1000:1000 launch_game.sh /usr/local/bin/launch_game.sh
+RUN chmod +x /usr/local/bin/launch_game.sh
 COPY --chown=1000:1000 entrypoint.sh /etc/entrypoint.sh
 RUN chmod -f 755 /etc/entrypoint.sh
 COPY --chown=1000:1000 selkies-gstreamer-entrypoint.sh /etc/selkies-gstreamer-entrypoint.sh
