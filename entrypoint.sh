@@ -140,15 +140,8 @@ ln -snf /dev/ptmx /dev/tty7 || sudo-root ln -snf /dev/ptmx /dev/tty7 || echo 'Fa
 # Wait for X server to start
 echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
-# Start KDE desktop environment
-export XDG_SESSION_ID="${DISPLAY#*:}"
-export QT_LOGGING_RULES="${QT_LOGGING_RULES:-*.debug=false;qt.qpa.*=false}"
-/usr/bin/dbus-launch --exit-with-session /usr/bin/startplasma-x11 &
-
-# Start Fcitx input method framework
-/usr/bin/fcitx &
-
-# Add custom processes right below this line, or within `supervisord.conf` to perform service management similar to systemd
-
-echo "Session Running. Press [Return] to exit."
-read
+# The X server is running. Now, we keep this script alive.
+# In a headless setup, we don't start a desktop environment.
+# Games will be launched directly onto the X server by the backend orchestrator.
+echo "Headless X session started. Waiting for game launch commands."
+tail -f /dev/null
