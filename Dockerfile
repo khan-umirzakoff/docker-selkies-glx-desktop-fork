@@ -319,7 +319,7 @@ RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
 RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
     # Install Sunshine
     SUNSHINE_VERSION="$(curl -fsSL "https://api.github.com/repos/LizardByte/Sunshine/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
-    cd /tmp && curl -o sunshine.deb -fsSL "https://github.com/LizardByte/Sunshine/releases/download/v${SUNSHINE_VERSION}/sunshine-ubuntu-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"')-amd64.deb" && \
+    cd /tmp && curl -o sunshine.deb -fsSL "https://github.com/LizardByte/Sunshine/releases/download/v${SUNSHINE_VERSION}/sunshine-ubuntu-$(grep '^VERSION_ID=' /etc/os-release | cut -d= -f2 | tr -d '\"')-amd64.deb" && \
     apt-get update && apt-get install -y ./sunshine.deb && rm -f sunshine.deb && \
     # Install SteamCMD
     echo steam steam/license note '' | debconf-set-selections && \
