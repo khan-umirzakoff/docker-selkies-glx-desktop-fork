@@ -140,8 +140,8 @@ ln -snf /dev/ptmx /dev/tty7 || sudo-root ln -snf /dev/ptmx /dev/tty7 || echo 'Fa
 # Wait for X server to start
 echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
-# The X server is running. Now, we keep this script alive.
-# In a headless setup, we don't start a desktop environment.
+# The X server is running. Now, we start the window manager.
+# In a headless setup, we use a lightweight window manager like openbox.
 # Games will be launched directly onto the X server by the backend orchestrator.
-echo "Headless X session started. Waiting for game launch commands."
-tail -f /dev/null
+echo "Headless X session started. Launching Openbox window manager."
+openbox-session
