@@ -32,13 +32,13 @@ services:
 #    - '65534-65535:65534-65535/udp'
     stdin_open: true
     tty: true
-    cap_add:
-      - SYS_ADMIN
-    devices:
-      - /dev/nvidia0:/dev/nvidia0
-      - /dev/nvidia-uvm:/dev/nvidia-uvm
-      - /dev/nvidia-uvm-tools:/dev/nvidia-uvm-tools
-      - /dev/nvidiactl:/dev/nvidiactl
+    deploy:
+      resources:
+        reservations:
+          devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
     tmpfs:
     - '/dev/shm:rw'
     volumes:
